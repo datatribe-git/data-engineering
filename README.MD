@@ -84,6 +84,18 @@ import com.amazon.deequ.constraints.ConstraintStatus
 ```
 This is a hypothetical example of setting a constraint on table size unless it's a dimension or a static lookup table, but you could see how the pipeline fails if the data quality check fails.
 
+### Versioning
+Deequ is available in Maven Central and Spark Packages. One needs to look at the compatibility matrix to find the right version of Deequ for the Spark version.
+
+|Deequ Version|Spark Version| Scala Version | Java Version  |
+|---|---|---------------| ------------- |
+|2.0.1|3.2.1| 2.12.10       |1.8 |
+|2.0.6|3.4.1| 2.12.10       |1.8|
+
+More details can be found [here](https://repo1.maven.org/maven2/com/amazon/deequ/deequ/).
+If these details are missing or incompatible with the pom.xml or build.sbt, then the build will fail.
+Similarly, cluster configuration on databricks should be compatible with the spark and scala versions only, while the java version can be different.
+
 ### Profiling
 1. definition and code, , how it does that?
 ### Partitioning 
@@ -93,4 +105,20 @@ This is a hypothetical example of setting a constraint on table size unless it's
 1. Each code line explanation
 2. Verification Result explanation
 ### Incremental computation // Optional
+
+### Limitations
+Deequ is not a data quality tool, it's a data quality library. It's not a tool like Informatica or Talend, which can be used to profile the data and generate reports.
+It should be considered, indeed more of a data quality library than a standalone data quality tool.
+It is not primarily focused on data profiling or generating reports in the same way as Informatica or Talend. 
+Deequ, on the other hand, is more developer-centric and integrates with Spark for scalable and distributed data processing.
+Deequ also does not have a UI, which means it's not a tool for business users. It is only meant for developers and data engineers.
+Perhaps, the biggest limitation of Deequ is that it does not support all the data sources. It only supports Spark data sources. 
+The data source needs to be brought in as a spark dataframe and then only the data quality checks can be applied.
+Since it is heavily Apache Spark based, its not a tool for Snowflake. Java dependencies are not compatible with Snowflake, JVM for Scala needs Java 11.x whereas Deequ is still compatible with Java 8, so there are not much of a possibility - but need to double-check!
+
 ### Conclusion
+1. If the ETL pipelines are built on top of Spark, then Deequ comes in place as a handy tool to define the data quality checks, which gets embedded in the pipeline. 
+2. It's declarative API style makes it easy to define the data quality checks and the pipeline will fail if the data quality checks fail.
+3. It's a great engineering project, leveraging Spark's distributed computation engine to pass the data quality checks/constraints in a optimized SparkSQL query. The query execution engines are generally faster in terms of implementation.
+4. This tool also gives recommendations for every column in the dataset - based on the machine learning model trained on the large datasets. This gives some sort of certainty on the data quality checks defined.
+5. It's focussed heavily on the developer community, it's not a tool for business users, unless they write the spark code to define the data quality checks.
