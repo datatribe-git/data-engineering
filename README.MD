@@ -1,3 +1,4 @@
+
 ### What is Deequ?
 Deequ is a library built on top of Apache Spark for defining "unit tests for data", which measure data quality not only in the small datasets but also at scale for large datasets. 
 It's built on top of Apache Spark and uses Spark's distributed computation engine to define data quality checks. 
@@ -188,6 +189,20 @@ And, the result looks something like this:
 | Column | enough tracks    | Compliance          | 0.9971     | 2024-01-09T03:57:20.584+0000 |
 | Dataset| *                | Size                | 438973     | 2024-01-09T03:57:20.584+0000 |
 
+the `ApproxCountDistinct` analyzer computes the approximate number of distinct values in a column - its fast because it uses the [HyperLogLog](https://redis.io/docs/data-types/probabilistic/hyperloglogs/#:~:text=of%20a%20set.-,HyperLogLog%20is%20a%20probabilistic%20data%20structure%20that%20estimates%20the%20cardinality,accuracy%20for%20efficient%20space%20utilization.) algorithm to compute the approximate distinct values.
+This algorithm is also available as part of Data Sketches in [Databricks](https://www.databricks.com/blog/2019/05/08/advanced-analytics-with-apache-spark.html) as well, just in case to make use of it
+
+### Versioning
+Deequ is available in Maven Central and Spark Packages. One needs to look at the compatibility matrix to find the right version of Deequ for the Spark version.
+
+|Deequ Version|Spark Version| Scala Version | Java Version  |
+|---|---|---------------| ------------- |
+|2.0.1|3.2.1| 2.12.10       |1.8 |
+|2.0.6|3.4.1| 2.12.10       |1.8|
+
+More details can be found [here](https://repo1.maven.org/maven2/com/amazon/deequ/deequ/).
+If these details are missing or incompatible with the pom.xml or build.sbt, then the build will fail.
+Similarly, cluster configuration on databricks should be compatible with the spark and scala versions only, while the java version can be different.
 
 ### Anomaly detection 
 1. Anomaly Detection Algorithms: Deequ uses standard algorithms for anomaly detection, such as the OnlineNormal algorithm, which computes a running mean and variance estimate and compares the series values to a user-defined bound on the number of standard deviations they are allowed to be different from the mean.
@@ -232,27 +247,29 @@ And, the result looks something like this:
 ### Deequ Implementation
 (pending)
 
-### Versioning
-Deequ is available in Maven Central and Spark Packages. One needs to look at the compatibility matrix to find the right version of Deequ for the Spark version.
-
-|Deequ Version|Spark Version| Scala Version | Java Version  |
-|---|---|---------------| ------------- |
-|2.0.1|3.2.1| 2.12.10       |1.8 |
-|2.0.6|3.4.1| 2.12.10       |1.8|
-
-More details can be found [here](https://repo1.maven.org/maven2/com/amazon/deequ/deequ/).
-If these details are missing or incompatible with the pom.xml or build.sbt, then the build will fail.
-Similarly, cluster configuration on databricks should be compatible with the spark and scala versions only, while the java version can be different.
-
 ### Limitations
-Deequ is a data quality library. It's not a tool like Informatica Data Quality or Talend Data Quality, which can connect to multiple data sources, have a dedicated UI for business users to define the data quality rules and generate reports
-It should be considered, indeed more of a data quality library than a standalone data quality tool.
-Deequ, on the other hand, is more developer-centric and integrates with Spark for scalable and distributed data processing.
-Deequ also does not have a UI, which means it's not a tool for business users. It is meant for developers and data engineers. 
-The data source needs to be brought in as a spark dataframe and then only the data quality checks can be applied - This means that all the sources supported by the Spark.
-Although it is designed for Spark, it can still be used to perform dq checks on data stored in snowflake - provided the data needs to be accessed via spark dataframe. Having said that, compatibility needs to be checked between the spark, snowflake and java 11 versions.
-Additionally, the PyDeequ library, which supports the usage of Deequ in Python, also mentions the compatibility of Deequ with Java 11  - but this also needs to be double-checked for the compatible Java 11 version.
-Moreover, the community support for Deequ is not as good as other open source projects like Apache Spark, Flink, Kafka, etc., - which is a bit of a concern in terms of adopting this tool for the organizations
+1. Deequ is a data quality library. It's not a tool like Informatica Data Quality or Talend Data Quality, which can connect to multiple data sources, have a dedicated UI for business users to define the data quality rules and generate reports
+2. It should be considered, indeed more of a data quality library than a standalone data quality tool. Deequ, on the other hand, is more developer-centric and integrates with Spark for scalable and distributed data processing.
+3. Deequ also does not have a UI, which means it's not a tool for business users. It is meant majorly for developers and data engineers. 
+4. The data source needs to be brought in as a spark dataframe and then only the data quality checks can be applied - This means that all the sources supported by the Spark.
+5. Although it is designed for Spark, it can still be used to perform dq checks on data stored in snowflake - provided the data needs to be accessed via spark dataframe. Having said that, compatibility needs to be checked between the spark, snowflake and java 11 versions.
+6. Moreover, the community support for Deequ is not as good as other data centric open source projects like Apache Spark, Flink, Kafka, etc., - which is a bit of a concern in terms of adopting this tool for the organizations
+7. Lastly, its a laborious task to define the data quality checks for each column in the dataset, which is a bit of a challenge for the developers - most often developers do not have full domain understanding to setup the rules for every column in the dataset. This is more of a common issue in terms of data quality checks, but deequ is not an exception, but what's interesting is that the metrics can be stored into a database and can be tracked over the period of time, which is a great feature to have.
+
+### Industry Adoption
+Because its an open source project, big companies find it relatively easy to consider this tool for handling DQ into their data platform ingestion processes. 
+For eg., 
+1. Deequ is used by Amazon for their internal data quality checks of many large datasets. 
+2. Big consultancy firm like Thoughtworks has used for one of their clients. 
+3. Netflix has been heavily using Deequ and GreatExpectations for data quality checks in their data platform.
+4. And, several other big companies tried and tested this tool for their data quality checks.
+
+### Alternatives
+1. GreatExpectations 
+2. Soda
+3. Pandera
+4. whylogs
+5. spark-expectations
 
 ### Conclusion
 1. If the ETL pipelines are built on top of Spark, then Deequ comes in place as a handy tool to define the data quality checks, which gets embedded in the pipeline. 
