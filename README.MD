@@ -245,7 +245,12 @@ And, the result looks something like this:
 (pending)
 
 ### Deequ Implementation
-(pending)
+This library is written on top of Apache Spark, it uses the distributed computation engine to compute the metrics on the spark dataframe. Initially it was developed in Scala but now it supports Pyspark as well.
+The entry point for Deequ is a spark dataframe. The user-facing API consists of constraints and checks, allows users to declaratively define the particular statistics and the particular verification code to be run.
+When checks are executed, Deequ identifies the Metrics required to compute. Each Metric is there is a corresponding Analyzer, which are capable of computing the particular metrics. The selected Analyzers are given to a AnalysisRunner - which applies simple set of optimizations for the computation of the metrics.
+For eg., in the spotify dataset, all the metrics like size, completeness, distinctness, compliance, etc., are handled by the AnalysisRunner and is a single pass computation over the SparkSQL query. The resulting metrics are stored in DynamoDB. The incremental computation state-store information is stored in the S3 filesystem.
+For predictive estimations, it uses the user given column names are featurized by concatenating their string representation. The result is tokenized and hashed using Spark's Tokenizer and HashingTF. The trained classification model is applied to predict values on a held-out fraction of the data. It uses Naive-Bayes classifier to predict the values.
+
 
 ### Limitations
 1. Deequ is a data quality library. It's not a tool like Informatica Data Quality or Talend Data Quality, which can connect to multiple data sources, have a dedicated UI for business users to define the data quality rules and generate reports
