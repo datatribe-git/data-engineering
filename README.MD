@@ -241,8 +241,18 @@ And, the result looks something like this:
 | Dataset | *        | Size | 2.0   | 1704776425091     |
 | Dataset  | *        | Size | 7.0   | 1704777904568 |
 
-### Incremental computation 
-(pending)
+### Incremental computation
+Quite often in the data platforms, we need to always load latest or new data (as a batch or a stream) into the data lake. This means the metrics calculated are always changing and we need to keep track of the metrics over the period of time. This is implemented using the State Store. Once the computation of metrics is done, the results are then stored in the state store and in the next subsequent runs, the metrics results are computed considering the previously stored state information and the incremental data. 
+```scala
+// if my countriesDF size is 2
+
+val stateStoreCurr = InMemoryStateProvider() // holds the current state information and holds the size of the countriesDF as 2
+
+// and in the next run, the countriesDF size is 7
+// the metrics are then used from the statesStoreCurr and the latest data is only used for computation, then the size of the countriesDF is 7
+```
+Similarly, the partitions are also handled in the similar manner to compute the metrics on the changed partitions only, provided the state store is maintained on the partition level.
+
 
 ### Deequ Implementation
 This library is written on top of Apache Spark, it uses the distributed computation engine to compute the metrics on the spark dataframe. Initially it was developed in Scala but now it supports Pyspark as well.
@@ -250,6 +260,10 @@ The entry point for Deequ is a spark dataframe. The user-facing API consists of 
 When checks are executed, Deequ identifies the Metrics required to compute. Each Metric is there is a corresponding Analyzer, which are capable of computing the particular metrics. The selected Analyzers are given to a AnalysisRunner - which applies simple set of optimizations for the computation of the metrics.
 For eg., in the spotify dataset, all the metrics like size, completeness, distinctness, compliance, etc., are handled by the AnalysisRunner and is a single pass computation over the SparkSQL query. The resulting metrics are stored in DynamoDB. The incremental computation state-store information is stored in the S3 filesystem.
 For predictive estimations, it uses the user given column names are featurized by concatenating their string representation. The result is tokenized and hashed using Spark's Tokenizer and HashingTF. The trained classification model is applied to predict values on a held-out fraction of the data. It uses Naive-Bayes classifier to predict the values.
+
+### Pydeeque
+Pydeeque is a python wrapper for Deequ, which is built on top of PySpark. We can simply install `pip install pydeequ` and start using it.
+We can get more information about the pydeequ [here](https://pydeequ.readthedocs.io/en/latest/README.html#quickstart).
 
 
 ### Limitations
@@ -283,3 +297,12 @@ For eg.,
 4. It also provides a number of missing values in a continuously produced dataset, which could be changing in the trends or behavioral patterns - which is often a most sought out feature requested by business analysts
 5. This library provides the data profiling capabilities like summary statistics on each column level. It can be used to profile the data and generate the data quality reports - gives recommendations for every column in the dataset - based on the machine learning model trained on the large datasets. This gives some sort of certainty on the data quality checks defined.
 5. Despite some of the limitations, it still serves as a good data quality library for Spark and PySpark users. It's a great tool to have in the data platforms.
+
+### References
+1. [VLDB Deequ Paper](https://www.vldb.org/pvldb/vol11/p1781-schelter.pdf)
+2. [AWS Deequ Github](https://github.com/awslabs/deequ/tree/master)
+3. [Towards Data Science](https://towardsdatascience.com/automated-data-quality-testing-at-scale-using-apache-spark-93bb1e2c5cd0)
+4. [Thoughtworks](https://www.thoughtworks.com/insights/blog/how-much-can-you-trust-your-data)
+
+### Community
+This article is written by [Chanukya Pekala](https://linkedin.com/in/chanukyapekala) for an open source community called [DataTribe Collective](https://datatribe.fi/)
